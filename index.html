@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Echoss VIP 後台管理系統</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#22A55A;--green-h:#1a8f4a;--green-bg:#E8F7EF;--green-mid:#C8EEDD;
+  --navy:#1B3460;--navy-l:#243E6E;
+  --text1:#1A1A1A;--text2:#444;--text3:#888;
+  --border:#E5E7EB;--border2:#D1D5DB;
+  --surface:#F6F7F9;--surface2:#EDEEF2;
+  --red:#E53935;--amber:#D97706;--amber-bg:#FEF3DA;
+  --r:6px;--rl:10px;
+}
+body{margin:0;font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;color:var(--text1);background:var(--surface);display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sb{width:200px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow-y:auto}
+.sb-logo{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.sb-logo-icon{width:34px;height:34px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-text{font-size:14px;font-weight:700}
+.sb-nav{padding:8px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--text2);margin-bottom:2px;transition:background .12s,color .12s;font-weight:500}
+.ni:hover{background:var(--surface);color:var(--text1)}
+.ni.on{background:var(--green-bg);color:var(--green);font-weight:600}
+.ni svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.ni.on svg{opacity:1}
+.ni-sep{height:1px;background:var(--border);margin:5px 0}
+
+/* ── MAIN SHELL ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ── TOPBAR ── */
+.topbar{height:52px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
+.tb-bc{font-size:12px;color:var(--text3)}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-sel{display:flex;align-items:center;border:1px solid var(--border2);border-radius:var(--r);padding:4px 9px;background:#fff}
+.tb-sel select{border:none;outline:none;font-size:12px;color:var(--text2);background:transparent;cursor:pointer;font-family:inherit}
+.avatar-btn{display:flex;align-items:center;gap:6px;border:1px solid var(--border2);border-radius:20px;padding:3px 10px 3px 3px;cursor:pointer}
+.avatar-c{width:26px;height:26px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.avatar-lbl{font-size:12px;font-weight:500;color:var(--text2)}
+
+/* ── PAGE LAYOUT ── */
+.pages{flex:1;overflow:hidden;position:relative}
+.pg{display:none;flex-direction:column;height:100%;overflow:hidden}
+.pg.on{display:flex}
+
+/* ── PAGE HEADER ── */
+.ph{padding:20px 28px 0;flex-shrink:0}
+.ph-title{font-size:20px;font-weight:700;margin-bottom:14px}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:2px solid var(--border);padding:0 28px;background:#fff;flex-shrink:0}
+.tab{padding:11px 14px;font-size:14px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:500;transition:color .12s,border-color .12s;user-select:none}
+.tab:hover{color:var(--text1)}
+.tab.on{color:var(--green);border-bottom-color:var(--green);font-weight:600}
+
+/* ── TAB CONTENTS ── */
+.tc{display:none;flex:1;overflow-y:auto}
+.tc.on{display:block}
+
+/* ── FILTER BAR ── */
+.fbar{padding:14px 28px;background:#fff;display:flex;align-items:flex-end;gap:14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.ff{display:flex;flex-direction:column;gap:4px}
+.fl{font-size:12px;font-weight:600;color:var(--text2)}
+.fi,.fsel{height:36px;border:1px solid var(--border2);border-radius:var(--r);padding:0 10px;font-size:13px;color:var(--text1);background:#fff;outline:none;font-family:inherit;min-width:160px}
+.fi:focus,.fsel:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(34,165,90,.1)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .12s;font-family:inherit;white-space:nowrap;line-height:1}
+.btn-p{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-p:hover{background:var(--green-h);border-color:var(--green-h)}
+.btn-o{background:#fff;color:var(--text2);border-color:var(--border2)}
+.btn-o:hover{background:var(--surface)}
+.btn-s{padding:5px 10px;font-size:12px}
+.btn-lnk{background:none;border:none;color:var(--green);font-size:13px;cursor:pointer;padding:0;font-weight:500;font-family:inherit}
+.btn-gray{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:0;font-family:inherit}
+.btn-gray:hover{color:var(--text1)}
+.btn-del{background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;padding:0;font-family:inherit}
+
+/* ── TABLE ── */
+.ttbar{padding:10px 28px;display:flex;align-items:center;justify-content:flex-end;gap:8px;background:#fff;border-bottom:1px solid var(--border)}
+table.mt{width:100%;border-collapse:collapse}
+table.mt th{text-align:left;padding:10px 14px;font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.03em;border-bottom:1px solid var(--border);background:#fff}
+table.mt td{padding:12px 14px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+table.mt tbody tr:hover td{background:#FAFBFC}
+table.mt th:first-child,table.mt td:first-child{padding-left:28px}
+table.mt th:last-child,table.mt td:last-child{padding-right:28px}
+
+/* ── TOGGLE ── */
+.tog{position:relative;display:inline-block;width:40px;height:22px;cursor:pointer}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{position:absolute;inset:0;background:#D1D5DB;border-radius:11px;transition:.2s}
+.tog input:checked+.tog-track{background:var(--green)}
+.tog-thumb{position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog input:checked~.tog-thumb{left:21px}
+
+/* ── BADGES ── */
+.bdg{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.bdg-g{background:var(--green-bg);color:#166534}
+.bdg-gray{background:var(--surface2);color:var(--text3)}
+.bdg-blue{background:#DBEAFE;color:#1D4ED8}
+
+/* ── PERM TAB ── */
+.perm-wrap{padding:20px 28px 100px}
+.perm-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.perm-title{font-size:15px;font-weight:700}
+.perm-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.notice{background:var(--amber-bg);border:1px solid #FDE68A;border-radius:var(--r);padding:10px 14px;font-size:12px;color:#92400E;display:flex;align-items:flex-start;gap:8px;margin-bottom:18px;line-height:1.6}
+
+.role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:28px}
+.rc{background:#fff;border:1.5px solid var(--border);border-radius:var(--rl);padding:16px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.rc:hover{border-color:#aaa;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.rc.sel{border-color:var(--green);box-shadow:0 0 0 3px rgba(34,165,90,.1)}
+.rc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.rc-name{font-size:14px;font-weight:700}
+.rc-desc{font-size:12px;color:var(--text3);margin-top:3px;line-height:1.5}
+.rc-foot{display:flex;align-items:center;padding-top:10px;border-top:1px solid var(--border);gap:8px}
+.rc-count{font-size:12px;color:var(--text3)}
+.rc-count b{font-weight:600;color:var(--text2)}
+.lock-tag{display:inline-flex;align-items:center;gap:3px;background:var(--surface2);color:var(--text3);font-size:11px;font-weight:600;padding:3px 7px;border-radius:4px}
+.add-rc{background:#fff;border:1.5px dashed var(--border2);border-radius:var(--rl);padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:108px;gap:6px;color:var(--text3);transition:all .15s}
+.add-rc:hover{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.add-rc .plus{width:32px;height:32px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;transition:background .15s}
+.add-rc:hover .plus{background:var(--green-mid)}
+
+/* ── PERM MATRIX ── */
+.pm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.pm-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+.pm-wrap{border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+table.pm{width:100%;border-collapse:collapse}
+table.pm thead th{background:var(--navy);color:rgba(255,255,255,.85);font-size:11px;font-weight:600;letter-spacing:.05em;padding:10px 12px;text-align:center}
+table.pm thead th.fc{text-align:left;padding-left:20px;width:34%}
+.pm-group td{background:#EEF1F7;color:var(--navy-l);font-weight:700;font-size:12px;padding:7px 12px 7px 20px;letter-spacing:.02em}
+.pm-feat td{padding:9px 12px;border-top:1px solid var(--border);color:var(--text2);text-align:center;vertical-align:middle}
+.pm-feat td.fn{text-align:left;padding-left:20px;color:var(--text1);font-size:13px}
+.pm-feat:hover td{background:#f8fbf8}
+.cw{display:flex;align-items:center;justify-content:center}
+.cb{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;background:#fff;flex-shrink:0}
+.cb.on{background:var(--green);border-color:var(--green)}
+.cb.on::after{content:'';display:block;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(0px,-1px)}
+.cb.locked{background:var(--surface2);border-color:var(--border);cursor:not-allowed}
+.cb.dash{background:var(--surface2);border-color:var(--border);cursor:not-allowed}
+.cb.dash::after{content:'';display:block;width:8px;height:1.5px;background:var(--border2);border-radius:1px}
+.col-all{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;user-select:none}
+.col-all-lbl{font-size:11px;font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.85)}
+.col-cb{width:16px;height:16px;border:1.5px solid rgba(255,255,255,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;background:transparent}
+.col-cb.on{background:#fff;border-color:#fff}
+.col-cb.on::after{content:'';display:block;width:4px;height:8px;border:2px solid var(--navy);border-top:none;border-left:none;transform:rotate(45deg) translate(0,-1px)}
+
+/* ── SAVE BAR ── */
+.save-bar{display:none;position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:11px 28px;align-items:center;justify-content:flex-end;gap:10px;margin-top:auto}
+.save-bar.show{display:flex}
+.save-note{font-size:12px;color:var(--amber);display:flex;align-items:center;gap:4px;margin-right:auto}
+
+/* ── MODAL ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:100}
+.ov.show{display:flex}
+.modal{background:#fff;border-radius:var(--rl);padding:24px;width:400px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.modal-t{font-size:16px;font-weight:700;margin-bottom:4px}
+.modal-d{font-size:13px;color:var(--text3);margin-bottom:18px;line-height:1.6}
+.fr{margin-bottom:14px}
+.fl2{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px}
+.fi2{width:100%;height:36px;border:1px solid var(--border2);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:inherit;outline:none}
+.fi2:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(34,165,90,.1)}
+.mf{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;max-width:300px;line-height:1.5}
+.toast.show{opacity:1}
+.toast.err{background:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="white" stroke-width="1.5"/><path d="M5.5 9l2.5 2.5L12.5 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="sb-logo-text">Echoss VIP</div>
+  </div>
+  <div class="sb-nav">
+    <div class="ni" onclick="goPage(this,'pg-placeholder','功能模組')"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>功能模組</div>
+    <div class="ni" onclick="goPage(this,'pg-placeholder','會員分析')"><svg viewBox="0 0 16 16" fill="none"><path d="M2 12.5L5.5 8L9 10.5L13.5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>會員分析</div>
+    <div class="ni" onclick="goPage(this,'pg-placeholder','會員資料')"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M2.5 14c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>會員資料</div>
+    <div class="ni-sep"></div>
+    <div class="ni on" id="ni-accounts" onclick="goPage(this,'pg-accounts','帳號管理')"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>帳號管理</div>
+    <div class="ni" onclick="goPage(this,'pg-placeholder','門市管理')"><svg viewBox="0 0 16 16" fill="none"><path d="M2 7h12M2 7V13a1 1 0 001 1h8a1 1 0 001-1V7M2 7L3.5 4h9L14 7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>門市管理</div>
+    <div class="ni" onclick="goPage(this,'pg-placeholder','系統設定')"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>系統設定</div>
+    <div class="ni" onclick="goPage(this,'pg-placeholder','下載區')"><svg viewBox="0 0 16 16" fill="none"><path d="M8 3v7M5.5 7.5L8 10l2.5-2.5M3 12.5h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>下載區</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="tb-bc" id="bc">帳號管理</span>
+    <div class="tb-right">
+      <div class="tb-sel"><select><option>快速切換品牌</option><option>VIP Cafe</option><option>Echoss VIP</option></select></div>
+      <div class="tb-sel"><select><option>語系切換</option><option>繁體中文</option><option>English</option></select></div>
+      <div class="avatar-btn"><div class="avatar-c">V</div><span class="avatar-lbl">VIP Cafe</span></div>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- ── ACCOUNTS PAGE ── -->
+    <div class="pg on" id="pg-accounts">
+      <div class="ph"><div class="ph-title">帳號管理</div></div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <div class="tab on" id="t-list" onclick="switchTab('list')">帳號列表</div>
+        <div class="tab" id="t-perm" onclick="switchTab('perm')">權限設定</div>
+        <div class="tab" id="t-login" onclick="switchTab('login')">登入紀錄</div>
+      </div>
+
+      <!-- TAB: LIST -->
+      <div class="tc on" id="tc-list">
+        <div class="fbar">
+          <div class="ff"><div class="fl">門市名稱</div><select class="fsel"><option value="">請選擇</option><option>Echoss VIP 測試門市 B</option><option>Echoss VIP 測試門市 C</option><option>VIP Cafe</option></select></div>
+          <div class="ff"><div class="fl">帳號</div><input class="fi" id="srch" placeholder="請輸入" oninput="filterAcc()"></div>
+          <div class="ff"><div class="fl">權限</div><select class="fsel" id="role-f" onchange="filterAcc()"><option value="">請選擇</option></select></div>
+          <div style="display:flex;gap:8px;margin-left:auto">
+            <button class="btn btn-o" onclick="clearF()">清除</button>
+            <button class="btn btn-p">搜尋</button>
+          </div>
+        </div>
+        <div class="ttbar">
+          <button class="btn btn-o btn-s" title="重新整理"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M10.5 6.5A4 4 0 112 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M2 2v3h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="btn btn-o btn-s"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M2 6.5h9M2 9.5h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+          <button class="btn btn-p" onclick="openAddAccModal()">新增帳號</button>
+        </div>
+        <table class="mt"><thead><tr><th>#</th><th>門市名稱</th><th>帳號</th><th>建立時間</th><th>權限</th><th>啟用</th><th>操作</th></tr></thead>
+        <tbody id="acc-body"></tbody></table>
+      </div>
+
+      <!-- TAB: LOGIN -->
+      <div class="tc" id="tc-login">
+        <div style="padding:60px 28px;text-align:center;color:var(--text3)">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style="margin:0 auto 12px;display:block"><rect x="6" y="8" width="32" height="28" rx="3" stroke="#D1D5DB" stroke-width="1.8"/><path d="M14 18h16M14 24h10" stroke="#D1D5DB" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <div style="font-size:14px;margin-bottom:4px">登入紀錄</div>
+          <div style="font-size:12px">顯示所有後台帳號的登入歷史記錄</div>
+        </div>
+      </div>
+
+      <!-- TAB: PERM -->
+      <div class="tc" id="tc-perm">
+        <div class="perm-wrap">
+          <div class="perm-top">
+            <div>
+              <div class="perm-title">角色列表</div>
+              <div class="perm-sub">點選角色可查看或編輯功能權限，最多可設定 10 個角色</div>
+            </div>
+            <button class="btn btn-p" onclick="openAddRoleModal()"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 2v9M2 6.5h9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>新增角色</button>
+          </div>
+          <div class="notice">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;margin-top:1px"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5v3M7 9.5v.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            <span><strong>品牌管理員</strong>與<strong>門市店長</strong>為系統預設角色，權限不可編輯。修改角色權限後，該角色帳號須<strong>重新登入</strong>才會套用新權限。</span>
+          </div>
+          <div class="role-grid" id="role-grid"></div>
+
+          <!-- MATRIX (shown after role selected) -->
+          <div id="matrix-section" style="display:none">
+            <div class="pm-head">
+              <div class="pm-title" id="pm-title"></div>
+              <div id="pm-btns"></div>
+            </div>
+            <div class="pm-wrap">
+              <table class="pm"><thead id="pm-head"></thead><tbody id="pm-body"></tbody></table>
+            </div>
+            <div class="save-bar" id="save-bar">
+              <div class="save-note"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 4v3M6.5 8.5v.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>尚有未儲存的變更</div>
+              <button class="btn btn-o btn-s" onclick="cancelEdit()">取消變更</button>
+              <button class="btn btn-p btn-s" onclick="savePerm()">儲存變更</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PLACEHOLDER ── -->
+    <div class="pg" id="pg-placeholder">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px" id="ph-lbl">—</div>
+    </div>
+
+  </div><!-- /pages -->
+</div><!-- /main -->
+
+<!-- OVERLAY -->
+<div class="ov" id="ov" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const MODS = [
+  {g:'會員註冊',  f:['表單欄位','擴充欄位','會員權益','使用條款','隱私權政策','簡訊OTP報表','會員推薦']},
+  {g:'標籤管理',  f:['一般標籤','建立受眾','入會標籤','批次貼標']},
+  {g:'活動公告',  f:['活動','公告']},
+  {g:'會員卡',    f:['會員卡組','點數設定','會員點數發點歷程','匯出會員點數CSV','會員發點','會員扣點','新增交易紀錄','點數紀錄','匯出會員點數紀錄']},
+  {g:'優惠模組',  f:['優惠票券','發券','票券發送紀錄','票券核銷反核銷','票券回收返還','匯出票券紀錄CSV','優惠點數','禮包組合','發送禮包','禮包發送紀錄']},
+  {g:'集點活動',  f:['集點活動列表','啟用集點活動','活動發點','活動扣點','集點活動點數紀錄','點數紀錄匯出CSV']},
+  {g:'受眾管理',  f:['受眾管理列表','同步受眾']},
+  {g:'自營票券',  f:['商品管理','商品紀錄','訂單核銷反核銷','訂單明細','核銷明細','請款報表']},
+  {g:'圖文選單',  f:['圖文選單列表','排序圖文選單']},
+  {g:'訊息中心',  f:['訊息中心列表','建立報表']},
+  {g:'自動化行銷',f:['自動化行銷列表','匯出執行紀錄CSV','遊戲模組']},
+  {g:'會員資料',  f:['會員資料列表','匯出會員資料CSV','新增特規會員','刪除會員','會員資訊','交易紀錄','會員點數','票券紀錄','商品訂單']},
+  {g:'帳號管理',  f:['帳號列表','啟用關閉帳號','解除google綁定','登入紀錄']},
+  {g:'門市管理',  f:['門市列表','綁定肚肚','匯出門市CSV','門市請款報表']},
+  {g:'系統設定',  f:['配色與選單','會員卡設定','交易點數紀錄匯入']},
+  {g:'下載區',    f:['下載紀錄']},
+];
+const ALL = MODS.flatMap(m => m.f);
+
+function p(v,e,c,d){return{v,e,c,d}}
+function aOn(){return p(1,1,1,1)}
+function aOff(){return p(0,0,0,0)}
+
+const OFF_CS  = new Set(['使用條款','隱私權政策','活動','公告','點數設定','啟用集點活動','同步受眾','商品管理','帳號列表','啟用關閉帳號','解除google綁定','門市列表','綁定肚肚','匯出門市CSV','門市請款報表','配色與選單','會員卡設定','交易點數紀錄匯入']);
+const OFF_ST  = new Set(['會員權益','使用條款','隱私權政策','活動','公告','點數設定','啟用集點活動','同步受眾','商品管理','商品紀錄','訂單核銷反核銷','帳號列表','啟用關閉帳號','解除google綁定','登入紀錄','門市列表','綁定肚肚','匯出門市CSV','門市請款報表','配色與選單','會員卡設定','交易點數紀錄匯入']);
+
+function mkPerms(type){
+  const r={};
+  ALL.forEach(f=>{
+    if(type==='admin') r[f]=aOn();
+    else if(type==='cs')    r[f]=OFF_CS.has(f)  ? aOff() : aOn();
+    else if(type==='store') r[f]=OFF_ST.has(f)  ? aOff() : aOn();
+    else r[f]=aOff();
+  });
+  return r;
+}
+
+let roles=[
+  {id:'admin',name:'品牌管理員',  desc:'完整後台操作權限',           locked:true, accounts:2,  perms:mkPerms('admin')},
+  {id:'cs',   name:'品牌客服',    desc:'會員服務與票券相關操作',      locked:false,accounts:5,  perms:mkPerms('cs')},
+  {id:'store',name:'門市店長',    desc:'門市操作（含特殊邏輯限制）',  locked:true, accounts:12, perms:mkPerms('store')},
+];
+let rid=100, selId=null, editP=null, dirty=false;
+
+const ACCS=[
+  {store:'Echoss VIP 測試門市 B',acct:'test0001',   created:'2021-05-25 01:27:17',roleId:'store',on:true},
+  {store:'Echoss VIP 測試門市 C',acct:'test123456', created:'2021-07-29 17:31:29',roleId:'store',on:true},
+  {store:'—',                    acct:'test1234',   created:'2021-07-29 17:35:08',roleId:'cs',   on:true},
+  {store:'VIP Cafe',             acct:'vipcafeadmin2',created:'2021-11-05 14:43:23',roleId:'admin',on:true},
+  {store:'Echoss VIP 測試門市 B',acct:'A1224231',   created:'2022-02-18 16:28:30',roleId:'cs',   on:true},
+  {store:'VIP Cafe',             acct:'manager01',  created:'2022-06-10 09:15:44',roleId:'admin',on:false},
+];
+let showAcc=[...ACCS];
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function goPage(el,pgId,label){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById(pgId).classList.add('on');
+  document.getElementById('bc').textContent=label;
+  if(pgId==='pg-placeholder') document.getElementById('ph-lbl').textContent=label;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TABS  ← KEY FIX: simple display toggle, no CSS conflicts
+// ═══════════════════════════════════════════════════════════
+const TAB_IDS = ['list','login','perm'];
+function switchTab(tab){
+  TAB_IDS.forEach(t=>{
+    document.getElementById('t-'+t).classList.toggle('on', t===tab);
+    const tc = document.getElementById('tc-'+t);
+    tc.classList.toggle('on', t===tab);
+  });
+  if(tab==='list') renderAcc();
+  if(tab==='perm') renderRoles();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACCOUNTS
+// ═══════════════════════════════════════════════════════════
+function roleName(id){const r=roles.find(x=>x.id===id);return r?r.name:'—';}
+function updateRoleFilter(){
+  const sel=document.getElementById('role-f');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">請選擇</option>'+roles.map(r=>`<option value="${r.id}"${cur===r.id?' selected':''}>${r.name}</option>`).join('');
+}
+
+function renderAcc(){
+  updateRoleFilter();
+  const body=document.getElementById('acc-body');
+  body.innerHTML=showAcc.map((a,i)=>{
+    const rn=roleName(a.roleId);
+    const bc=a.roleId==='admin'?'bdg-g':a.roleId==='store'?'bdg-gray':'bdg-blue';
+    return`<tr>
+      <td>${i+1}</td>
+      <td>${a.store}</td>
+      <td style="font-weight:600;color:var(--text1)">${a.acct}</td>
+      <td>${a.created}</td>
+      <td><span class="bdg ${bc}">${rn}</span></td>
+      <td><label class="tog"><input type="checkbox" ${a.on?'checked':''} onchange="showAcc[${i}].on=this.checked"><div class="tog-track"></div><div class="tog-thumb"></div></label></td>
+      <td><button class="btn-lnk" onclick="openEditAcc(${i})" style="margin-right:12px">編輯</button><button class="btn-gray">解除 Google 綁定</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterAcc(){
+  const s=document.getElementById('srch').value.toLowerCase();
+  const rf=document.getElementById('role-f').value;
+  showAcc=ACCS.filter(a=>(!s||a.acct.toLowerCase().includes(s))&&(!rf||a.roleId===rf));
+  renderAcc();
+}
+function clearF(){document.getElementById('srch').value='';document.getElementById('role-f').value='';showAcc=[...ACCS];renderAcc();}
+
+function openAddAccModal(){
+  const opts=roles.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+  showModal(`<div class="modal-t">新增帳號</div>
+    <div class="modal-d">建立新的後台帳號並指定角色</div>
+    <div class="fr"><label class="fl2">帳號 <span style="color:var(--red)">*</span></label><input class="fi2" id="na" placeholder="輸入帳號名稱"></div>
+    <div class="fr"><label class="fl2">門市名稱</label><input class="fi2" id="ns" placeholder="選填"></div>
+    <div class="fr"><label class="fl2">角色 <span style="color:var(--red)">*</span></label><select class="fi2" id="nr" style="height:36px">${opts}</select></div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="doAddAcc()">建立帳號</button></div>`);
+}
+function doAddAcc(){
+  const a=document.getElementById('na').value.trim();
+  if(!a){toast('請輸入帳號名稱',1);return;}
+  const now=new Date();
+  const ts=`${now.getFullYear()}-${z(now.getMonth()+1)}-${z(now.getDate())} ${z(now.getHours())}:${z(now.getMinutes())}:${z(now.getSeconds())}`;
+  ACCS.push({store:document.getElementById('ns').value.trim()||'—',acct:a,created:ts,roleId:document.getElementById('nr').value,on:true});
+  showAcc=[...ACCS];closeModal();renderAcc();toast('帳號已建立');
+}
+function z(n){return String(n).padStart(2,'0');}
+function openEditAcc(i){
+  const a=showAcc[i];
+  const opts=roles.map(r=>`<option value="${r.id}"${a.roleId===r.id?' selected':''}>${r.name}</option>`).join('');
+  showModal(`<div class="modal-t">編輯帳號</div>
+    <div class="modal-d">修改「${a.acct}」的資訊</div>
+    <div class="fr"><label class="fl2">帳號</label><input class="fi2" value="${a.acct}" disabled style="background:var(--surface2);color:var(--text3)"></div>
+    <div class="fr"><label class="fl2">門市名稱</label><input class="fi2" id="es" value="${a.store==='—'?'':a.store}"></div>
+    <div class="fr"><label class="fl2">角色</label><select class="fi2" id="er" style="height:36px">${opts}</select></div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="doEditAcc(${i})">儲存</button></div>`);
+}
+function doEditAcc(i){
+  showAcc[i].store=document.getElementById('es').value.trim()||'—';
+  showAcc[i].roleId=document.getElementById('er').value;
+  closeModal();renderAcc();toast('帳號已更新');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROLES
+// ═══════════════════════════════════════════════════════════
+function renderRoles(){
+  const grid=document.getElementById('role-grid');
+  grid.innerHTML='';
+  const sorted=[...roles].sort((a,b)=>b.locked-a.locked);
+  sorted.forEach(role=>{
+    const card=document.createElement('div');
+    card.className='rc'+(role.id===selId?' sel':'');
+    card.onclick=()=>selectRole(role.id);
+
+    const badge=role.locked
+      ? `<span class="lock-tag"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="2" y="4" width="6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 4V3a2 2 0 014 0v1" stroke="currentColor" stroke-width="1.2"/></svg> 不可編輯</span>`
+      : `<span class="bdg bdg-blue" style="font-size:11px">可自訂</span>`;
+
+    const liveCount=ACCS.filter(a=>a.roleId===role.id).length;
+    const acts=role.locked?'':
+      `<button class="btn-lnk" style="font-size:12px" onclick="event.stopPropagation();openEditRole('${role.id}')">改名</button>`+
+      `<button class="btn-del" style="font-size:12px" onclick="event.stopPropagation();askDeleteRole('${role.id}')">刪除</button>`;
+
+    card.innerHTML=`
+      <div class="rc-top"><div><div class="rc-name">${role.name}</div><div class="rc-desc">${role.desc}</div></div>${badge}</div>
+      <div class="rc-foot"><span class="rc-count"><b>${liveCount}</b> 位帳號</span><div style="margin-left:auto;display:flex;gap:10px">${acts}</div></div>`;
+    grid.appendChild(card);
+  });
+
+  const canAdd=roles.length<10;
+  const addCard=document.createElement('div');
+  addCard.className='add-rc';
+  if(!canAdd){addCard.style.opacity='.4';addCard.style.pointerEvents='none';}
+  else addCard.onclick=openAddRoleModal;
+  addCard.innerHTML=`<div class="plus">+</div><span style="font-size:13px;font-weight:500">${canAdd?'新增角色':'已達上限'}</span><span style="font-size:11px">${roles.length}/10 個角色</span>`;
+  grid.appendChild(addCard);
+
+  // re-render matrix if a role was already selected
+  if(selId){
+    const role=roles.find(r=>r.id===selId);
+    if(role) renderMatrix(role);
+  }
+}
+
+function selectRole(id){
+  selId=id; dirty=false;
+  editP=JSON.parse(JSON.stringify(roles.find(r=>r.id===id).perms));
+  renderRoles();
+  document.getElementById('matrix-section').style.display='';
+  renderMatrix(roles.find(r=>r.id===id));
+  document.getElementById('matrix-section').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ═══════════════════════════════════════════════════════════
+// PERMISSION MATRIX
+// ═══════════════════════════════════════════════════════════
+const OPS=[{k:'v',l:'查看'},{k:'e',l:'編輯'},{k:'c',l:'新增'},{k:'d',l:'刪除'}];
+
+function renderMatrix(role){
+  const locked=role.locked;
+  // title
+  const titleEl=document.getElementById('pm-title');
+  titleEl.innerHTML=`<svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="flex-shrink:0"><path d="M6.5 1L8 4.5H12L9 6.8L10 10L6.5 8L3 10L4 6.8L1 4.5H5L6.5 1Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>${role.name} — 功能權限`+
+    (locked?` <span class="lock-tag"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="2" y="4" width="6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 4V3a2 2 0 014 0v1" stroke="currentColor" stroke-width="1.2"/></svg>不可編輯</span>`:'');
+
+  // save buttons
+  document.getElementById('pm-btns').innerHTML=locked?'':
+    `<div style="display:flex;gap:8px">
+      <button class="btn btn-o btn-s" onclick="cancelEdit()">取消變更</button>
+      <button class="btn btn-p btn-s" onclick="savePerm()">儲存變更</button>
+    </div>`;
+  setSaveBar(false);
+
+  // thead
+  const allOn=OPS.map(op=>MODS.every(m=>m.f.every(f=>editP[f]&&editP[f][op.k])));
+  document.getElementById('pm-head').innerHTML=`<tr>
+    <th class="fc">功能模組</th>
+    ${OPS.map((op,i)=>`<th>${locked
+      ? op.l
+      : `<div class="col-all" onclick="toggleCol('${op.k}')"><div class="col-cb ${allOn[i]?'on':''}"></div><div class="col-all-lbl">${op.l}</div></div>`
+    }</th>`).join('')}
+  </tr>`;
+
+  // tbody
+  let html='';
+  MODS.forEach(m=>{
+    html+=`<tr class="pm-group"><td colspan="5">◆  ${m.g}</td></tr>`;
+    m.f.forEach(f=>{
+      const pr=editP[f]||{v:0,e:0,c:0,d:0};
+      html+=`<tr class="pm-feat"><td class="fn">${f}</td>`;
+      OPS.forEach(op=>{
+        const val=pr[op.k];
+        if(locked){
+          html+=`<td><div class="cw"><div class="cb ${val?'on':'locked'}"></div></div></td>`;
+        } else {
+          const viewLk=op.k==='v'&&(pr.e||pr.c||pr.d);
+          html+=`<td><div class="cw"><div class="cb ${val?'on':''} ${viewLk?'locked':''}" data-f="${f.replace(/"/g,'&quot;')}" data-op="${op.k}"></div></div></td>`;
+        }
+      });
+      html+='</tr>';
+    });
+  });
+  document.getElementById('pm-body').innerHTML=html;
+
+  // attach click events (avoid inline onclick with special chars)
+  document.querySelectorAll('#pm-body .cb[data-f]').forEach(el=>{
+    if(!el.classList.contains('locked')){
+      el.addEventListener('click',()=>togglePerm(el.dataset.f, el.dataset.op));
+    }
+  });
+}
+
+function togglePerm(feat,op){
+  if(!editP[feat]) return;
+  const cur=editP[feat][op];
+  editP[feat][op]=cur?0:1;
+  if(op!=='v'&&!cur) editP[feat].v=1;       // enable view when edit/create/delete enabled
+  if(op==='v'&&cur){editP[feat].e=0;editP[feat].c=0;editP[feat].d=0;}  // disable rest when view off
+  setSaveBar(true);
+  renderMatrix(roles.find(r=>r.id===selId));
+}
+
+function toggleCol(op){
+  const allOn=MODS.every(m=>m.f.every(f=>editP[f]&&editP[f][op]));
+  MODS.forEach(m=>m.f.forEach(f=>{
+    if(!editP[f]) return;
+    editP[f][op]=allOn?0:1;
+    if(op!=='v'&&!allOn) editP[f].v=1;
+    if(op==='v'&&allOn){editP[f].e=0;editP[f].c=0;editP[f].d=0;}
+  }));
+  setSaveBar(true);
+  renderMatrix(roles.find(r=>r.id===selId));
+}
+
+function setSaveBar(d){
+  dirty=d;
+  const bar=document.getElementById('save-bar');
+  if(bar) bar.classList.toggle('show',d);
+  const btn=document.getElementById('save-btn');
+  if(btn){btn.style.opacity=d?'1':'0.4';btn.style.pointerEvents=d?'auto':'none';}
+}
+
+function savePerm(){
+  const role=roles.find(r=>r.id===selId);
+  if(!role) return;
+  role.perms=JSON.parse(JSON.stringify(editP));
+  setSaveBar(false);
+  toast('權限設定已儲存。帳號重新登入後生效。');
+}
+function cancelEdit(){
+  const role=roles.find(r=>r.id===selId);
+  if(!role) return;
+  editP=JSON.parse(JSON.stringify(role.perms));
+  setSaveBar(false);
+  renderMatrix(role);
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROLE MODALS
+// ═══════════════════════════════════════════════════════════
+function openAddRoleModal(){
+  if(roles.length>=10){toast('已達角色上限（10個）',1);return;}
+  showModal(`<div class="modal-t">新增角色</div>
+    <div class="modal-d">建立新角色後即可設定各功能操作權限</div>
+    <div class="fr"><label class="fl2">角色名稱 <span style="color:var(--red)">*</span></label><input class="fi2" id="rn" placeholder="例：財務人員、業務主管" maxlength="50" oninput="clearInlineErr('rn-err')"><div id="rn-err" style="display:none;font-size:11px;color:var(--red);margin-top:4px"></div><div style="font-size:11px;color:var(--text3);margin-top:4px">最多 50 字，同品牌不可重複</div></div>
+    <div class="fr"><label class="fl2">說明（選填）</label><input class="fi2" id="rd" placeholder="描述此角色的主要職責" maxlength="200"></div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="doAddRole()">建立角色</button></div>`);
+}
+function clearInlineErr(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+function showInlineErr(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.display='block';}}
+function doAddRole(){
+  const name=document.getElementById('rn').value.trim();
+  const desc=document.getElementById('rd').value.trim();
+  if(!name){showInlineErr('rn-err','請輸入角色名稱');return;}
+  if(roles.find(r=>r.name===name)){showInlineErr('rn-err','此角色名稱已存在，請換一個名稱');return;}
+  const id='r'+rid++;
+  roles.push({id,name,desc:desc||'自訂角色',locked:false,accounts:0,perms:mkPerms('new')});
+  closeModal();renderRoles();selectRole(id);toast('角色已建立，請設定功能權限');
+}
+
+function openEditRole(id){
+  const role=roles.find(r=>r.id===id);
+  showModal(`<div class="modal-t">編輯角色</div>
+    <div class="modal-d">修改「${role.name}」的名稱與說明</div>
+    <div class="fr"><label class="fl2">角色名稱</label><input class="fi2" id="ern" value="${role.name}" maxlength="50"></div>
+    <div class="fr"><label class="fl2">說明</label><input class="fi2" id="erd" value="${role.desc}" maxlength="100"></div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="doEditRole('${id}')">儲存</button></div>`);
+}
+function doEditRole(id){
+  const name=document.getElementById('ern').value.trim();
+  if(!name){toast('請輸入角色名稱',1);return;}
+  if(roles.find(r=>r.name===name&&r.id!==id)){toast('此角色名稱已存在',1);return;}
+  const role=roles.find(r=>r.id===id);
+  role.name=name;role.desc=document.getElementById('erd').value.trim()||role.desc;
+  closeModal();renderRoles();toast('角色已更新');
+}
+
+function askDeleteRole(id){
+  const role=roles.find(r=>r.id===id);
+  const boundCount=ACCS.filter(a=>a.roleId===id).length;
+  if(boundCount>0){
+    showModal(`<div class="modal-t">無法刪除角色</div>
+      <div class="modal-d" style="line-height:1.7">目前「${role.name}」權限仍有帳號使用中，請先調整相關帳號權限再進行刪除。</div>
+      <div style="background:var(--amber-bg);border:1px solid #FDE68A;border-radius:var(--r);padding:10px 14px;font-size:12px;color:#92400E;display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;line-height:1.6">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;margin-top:1px"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5v3M7 9.5v.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>目前綁定帳號數：<strong>${boundCount}</strong> 位。請至「帳號列表」將這些帳號的角色更換為其他角色後，再回來刪除。</span>
+      </div>
+      <div class="mf"><button class="btn btn-p" onclick="closeModal()">我知道了</button></div>`);
+    return;
+  }
+  showModal(`<div class="modal-t">確認刪除角色</div>
+    <div class="modal-d">確定要刪除「${role.name}」嗎？此操作無法復原，角色的所有權限設定將一併移除。</div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" style="background:var(--red);border-color:var(--red)" onclick="doDeleteRole('${id}')">確認刪除</button></div>`);
+}
+function doDeleteRole(id){
+  roles=roles.filter(r=>r.id!==id);
+  if(selId===id){selId=null;editP=null;document.getElementById('matrix-section').style.display='none';}
+  closeModal();renderRoles();toast('角色已刪除');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL / TOAST
+// ═══════════════════════════════════════════════════════════
+function showModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('ov').classList.add('show');}
+function closeModal(){document.getElementById('ov').classList.remove('show');}
+
+let tt=null;
+function toast(msg,err=0){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show'+(err?' err':'');
+  clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+renderAcc();
+</script>
+</body>
+</html>
