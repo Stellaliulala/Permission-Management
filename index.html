@@ -127,6 +127,9 @@ table.mt th:last-child,table.mt td:last-child{padding-right:28px}
 .add-rc .plus{width:32px;height:32px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;transition:background .15s}
 .add-rc:hover .plus{background:var(--green-mid)}
 
+/* ── STORE SPECIAL TAG ── */
+.store-tag{display:inline-flex;align-items:center;gap:3px;background:#EFF6FF;color:#1D4ED8;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:6px;white-space:nowrap}
+
 /* ── PERM MATRIX ── */
 .pm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .pm-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
@@ -332,22 +335,26 @@ function aOff(){return p(0,0,0,0)}
 
 const OFF_CS  = new Set(['使用條款','隱私權政策','活動','公告','點數設定','啟用集點活動','同步受眾','商品管理','帳號列表','啟用關閉帳號','解除google綁定','門市列表','綁定肚肚','匯出門市CSV','門市請款報表','配色與選單','會員卡設定','交易點數紀錄匯入']);
 const OFF_ST  = new Set(['會員權益','使用條款','隱私權政策','活動','公告','點數設定','啟用集點活動','同步受眾','商品管理','商品紀錄','訂單核銷反核銷','帳號列表','啟用關閉帳號','解除google綁定','登入紀錄','門市列表','綁定肚肚','匯出門市CSV','門市請款報表','配色與選單','會員卡設定','交易點數紀錄匯入']);
+// 限綁定門市功能：其他角色可勾選，但執行時後端會限制只能操作自己綁定門市的資料
+const STORE_SPECIAL = new Set(['新增交易紀錄','活動發點','活動扣點']);
 
 function mkPerms(type){
   const r={};
   ALL.forEach(f=>{
-    if(type==='admin') r[f]=aOn();
-    else if(type==='cs')    r[f]=OFF_CS.has(f)  ? aOff() : aOn();
+    if(type==='admin')    r[f]=aOn();
+    else if(type==='cs')  r[f]=OFF_CS.has(f)  ? aOff() : aOn();
     else if(type==='store') r[f]=OFF_ST.has(f)  ? aOff() : aOn();
+    else if(type==='ro')  r[f]={v:1,e:0,c:0,d:0};
     else r[f]=aOff();
   });
   return r;
 }
 
 let roles=[
-  {id:'admin',name:'品牌管理員',  desc:'完整後台操作權限',           locked:true, accounts:2,  perms:mkPerms('admin')},
-  {id:'cs',   name:'品牌客服',    desc:'會員服務與票券相關操作',      locked:false,accounts:5,  perms:mkPerms('cs')},
-  {id:'store',name:'門市店長',    desc:'門市操作（含特殊邏輯限制）',  locked:true, accounts:12, perms:mkPerms('store')},
+  {id:'admin',name:'品牌管理員',  desc:'完整後台操作權限',             locked:true, permLocked:true, sysDefault:2, accounts:2,  perms:mkPerms('admin')},
+  {id:'ro',   name:'唯讀',        desc:'所有功能皆可查看，不可操作',    locked:false,permLocked:true, sysDefault:2, accounts:0,  perms:mkPerms('ro')},
+  {id:'store',name:'門市店長',    desc:'門市操作（含特殊邏輯限制）',   locked:false,permLocked:false,sysDefault:1, accounts:12, perms:mkPerms('store')},
+  {id:'cs',   name:'品牌客服',    desc:'會員服務與票券相關操作',        locked:false,permLocked:false,sysDefault:1, accounts:5,  perms:mkPerms('cs')},
 ];
 let rid=100, selId=null, editP=null, dirty=false;
 
@@ -463,7 +470,7 @@ function doEditAcc(i){
 function renderRoles(){
   const grid=document.getElementById('role-grid');
   grid.innerHTML='';
-  const sorted=[...roles].sort((a,b)=>b.locked-a.locked);
+  const sorted=[...roles].sort((a,b)=>(b.sysDefault||0)-(a.sysDefault||0));
   sorted.forEach(role=>{
     const card=document.createElement('div');
     card.className='rc'+(role.id===selId?' sel':'');
@@ -471,12 +478,16 @@ function renderRoles(){
 
     const badge=role.locked
       ? `<span class="lock-tag"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="2" y="4" width="6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 4V3a2 2 0 014 0v1" stroke="currentColor" stroke-width="1.2"/></svg> 不可編輯</span>`
-      : `<span class="bdg bdg-blue" style="font-size:11px">可自訂</span>`;
+      : role.permLocked
+        ? `<span class="lock-tag" style="background:#EFF6FF;color:#1D4ED8;border-color:#BFDBFE"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2C3 2 1.5 5 1.5 5S3 8 5 8s3.5-3 3.5-3S7 2 5 2z" stroke="currentColor" stroke-width="1.1"/><circle cx="5" cy="5" r="1.2" stroke="currentColor" stroke-width="1.1"/></svg> 唯讀權限</span>`
+        : `<span class="lock-tag" style="background:#DCFCE7;color:#166534;border-color:#BBF7D0">可自訂</span>`;
 
     const liveCount=ACCS.filter(a=>a.roleId===role.id).length;
-    const acts=role.locked?'':
-      `<button class="btn-lnk" style="font-size:12px" onclick="event.stopPropagation();openEditRole('${role.id}')">改名</button>`+
-      `<button class="btn-del" style="font-size:12px" onclick="event.stopPropagation();askDeleteRole('${role.id}')">刪除</button>`;
+    const canRename=!role.locked;
+    const canDelete=!role.locked&&!role.permLocked;
+    const renameBtn=canRename?`<button class="btn-lnk" style="font-size:12px" onclick="event.stopPropagation();openEditRole('${role.id}')">改名</button>`:'';
+    const deleteBtn=canDelete?`<button class="btn-del" style="font-size:12px" onclick="event.stopPropagation();askDeleteRole('${role.id}')">刪除</button>`:'';
+    const acts=renameBtn+deleteBtn;
 
     card.innerHTML=`
       <div class="rc-top"><div><div class="rc-name">${role.name}</div><div class="rc-desc">${role.desc}</div></div>${badge}</div>
@@ -514,14 +525,19 @@ function selectRole(id){
 const OPS=[{k:'v',l:'查看'},{k:'e',l:'編輯'},{k:'c',l:'新增'},{k:'d',l:'刪除'}];
 
 function renderMatrix(role){
-  const locked=role.locked;
+  const locked=role.permLocked||role.locked;
   // title
   const titleEl=document.getElementById('pm-title');
-  titleEl.innerHTML=`<svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="flex-shrink:0"><path d="M6.5 1L8 4.5H12L9 6.8L10 10L6.5 8L3 10L4 6.8L1 4.5H5L6.5 1Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>${role.name} — 功能權限`+
-    (locked?` <span class="lock-tag"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="2" y="4" width="6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 4V3a2 2 0 014 0v1" stroke="currentColor" stroke-width="1.2"/></svg>不可編輯</span>`:'');
+  const isPermLocked=role.permLocked||role.locked;
+  const lockBadge=role.locked
+    ? `<span class="lock-tag"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="2" y="4" width="6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 4V3a2 2 0 014 0v1" stroke="currentColor" stroke-width="1.2"/></svg>不可編輯</span>`
+    : role.permLocked
+      ? `<span class="lock-tag" style="background:#EFF6FF;color:#1D4ED8;border-color:#BFDBFE"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2C3 2 1.5 5 1.5 5S3 8 5 8s3.5-3 3.5-3S7 2 5 2z" stroke="currentColor" stroke-width="1.1"/><circle cx="5" cy="5" r="1.2" stroke="currentColor" stroke-width="1.1"/></svg>唯讀權限，不可修改</span>`
+      : '';
+  titleEl.innerHTML=`<svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="flex-shrink:0"><path d="M6.5 1L8 4.5H12L9 6.8L10 10L6.5 8L3 10L4 6.8L1 4.5H5L6.5 1Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>${role.name} — 功能權限 ${lockBadge}`;
 
   // save buttons
-  document.getElementById('pm-btns').innerHTML=locked?'':
+  document.getElementById('pm-btns').innerHTML=isPermLocked?'':
     `<div style="display:flex;gap:8px">
       <button class="btn btn-o btn-s" onclick="cancelEdit()">取消變更</button>
       <button class="btn btn-p btn-s" onclick="savePerm()">儲存變更</button>
@@ -544,10 +560,12 @@ function renderMatrix(role){
     html+=`<tr class="pm-group"><td colspan="5">◆  ${m.g}</td></tr>`;
     m.f.forEach(f=>{
       const pr=editP[f]||{v:0,e:0,c:0,d:0};
-      html+=`<tr class="pm-feat"><td class="fn">${f}</td>`;
+      const isSpecial=STORE_SPECIAL.has(f);
+      const specialTag=isSpecial?`<span class="store-tag" title="執行時限制為帳號綁定門市的資料">限綁定門市</span>`:'';
+      html+=`<tr class="pm-feat"><td class="fn">${f}${specialTag}</td>`;
       OPS.forEach(op=>{
         const val=pr[op.k];
-        if(locked){
+        if(isPermLocked){
           html+=`<td><div class="cw"><div class="cb ${val?'on':'locked'}"></div></div></td>`;
         } else {
           const viewLk=op.k==='v'&&(pr.e||pr.c||pr.d);
@@ -600,6 +618,11 @@ function setSaveBar(d){
 function savePerm(){
   const role=roles.find(r=>r.id===selId);
   if(!role) return;
+  const hasAny=Object.values(editP).some(p=>p.v||p.e||p.c||p.d);
+  if(!hasAny){
+    showModal('<div class="modal-t">無法儲存</div><div class="modal-d" style="line-height:1.7">「'+role.name+'」尚未勾選任何功能權限，請至少開啟一項功能的查看權限後再儲存。</div><div class="mf"><button class="btn btn-p" onclick="closeModal()">我知道了</button></div>');
+    return;
+  }
   role.perms=JSON.parse(JSON.stringify(editP));
   setSaveBar(false);
   toast('權限設定已儲存。帳號重新登入後生效。');
